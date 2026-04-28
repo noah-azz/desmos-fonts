@@ -55,7 +55,7 @@
         }
 
         #footer {
-            position:fixed;
+            position: fixed;
             padding: 0.5rem;
             background-color: lightgray;
             border-radius: 8px;
@@ -81,7 +81,8 @@
     <div id="output">
         <div>
             <p id="points"></p>
-            <span hidden id="points-tip">In the graph, delete the table in the "Points" folder, then paste these values. Change the column names to be x<sub>1</sub> and y<sub>1</sub></sub>.</span>
+            <span hidden id="points-tip">In the graph, delete the table in the "Points" folder, then paste these values.
+                Change the column names to be x<sub>1</sub> and y<sub>1</sub></sub>.</span>
         </div>
         <div>
             <p id="letters"></p>
@@ -94,13 +95,13 @@
 <script>
     const fileInput = document.getElementById('file-input');
     fileInput.addEventListener('change', processFile);
-    
+
     const copyTip = document.getElementById('copy-tip');
     const pointsOutput = document.getElementById('points');
     const lettersOutput = document.getElementById('letters');
     enableCopy(pointsOutput);
     enableCopy(lettersOutput);
-    
+
     function enableCopy(el) {
         el.addEventListener('click', () => {
             navigator.clipboard.writeText(el.innerText);
@@ -116,14 +117,19 @@
         const buffer = await fileInput.files[0].arrayBuffer();
         const font = opentype.parse(buffer);
         const glyphs = font.glyphs.glyphs;
-        const aIndex = Object.entries(glyphs).find(x => x[1].name == 'a')[1].index;
+
+        // Lowercase a-z
+        const alphaGlyphs = Object.entries(glyphs)
+            .filter(x => x[1].unicode >= 97 && x[1].unicode <= 122)
+            .sort((a, b) => a[1].unicode > b[1].unicode);
+
         var data = ['0,\n300'];  // space (300 units)
 
         var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         var startOffset = 2;
         const letterStartMap = [];
         for (let i = 0; i < 24; i++) {
-            const letter = glyphs[i + aIndex];
+            const letter = alphaGlyphs[i][1];
             const points = getPoints(letter.points, letter.advanceWidth);
             data = data.concat(points);
             letterStartMap.push(`${alphabet[i]}=${startOffset}`);
@@ -137,7 +143,7 @@
         document.getElementById('points-tip').hidden = false;
         document.getElementById('letters-tip').hidden = false;
     }
-    
+
     function getPoints(points, advanceWidth) {
         const data = [];
         var firstPointOnContour = points[0];
